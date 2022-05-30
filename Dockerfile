@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     libcurl4-gnutls-dev \
     libcairo2-dev \
     libxt-dev \
+    libxml2-dev\
     libssl-dev \
     libssh2-1-dev \
     libssl1.0

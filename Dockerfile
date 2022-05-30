@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y \
     libssh2-1-dev \
     libssl1.0
 
+RUN apt-get update && apt-get -y install cmake protobuf-compiler
+
 # install basic shiny functionality to R
 RUN R -e "install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid',  'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))"
 

@@ -2,7 +2,7 @@
 # build the Docker image from the base image 'openanalytics/r-base'
 # this is an Ubuntu 16.04 LTS with a recent R version.
 # this image is available on Docker hub at https://hub.docker.com/r/openanalytics/r-base/
-FROM r-base:4.2.0
+FROM rocker/r-base:latest
 
 # add the maintainer of this Docker image (this should be you in this case)
 LABEL maintainer "Devon Kohler <kohler.d@northeastern.edu>"
@@ -30,18 +30,18 @@ RUN R -e "BiocManager::install(c('MSstatsTMT', 'biomaRt'))"
 
 # copy the example euler app (with the ui.R and server.R files)
 # onto the image in folder /root/euler
-RUN mkdir /root/MSstats-Shiny
-COPY MSstats-Shiny /root/MSstats-Shiny
+RUN mkdir /home/MSstats-Shiny
+COPY MSstats-Shiny /home/MSstats-Shiny
 
 # copy the Rprofile.site set up file to the image.
 # this make sure your Shiny app will run on the port expected by
 # ShinyProxy and also ensures that one will be able to connect to
 # the Shiny app from the outside world
-COPY Rprofile.site /usr/lib/R/etc/
+COPY Rprofile.site /usr/local/lib/R/etc/
 
 # instruct Docker to expose port 3838 to the outside world
 # (otherwise it will not be possible to connect to the Shiny application)
 EXPOSE 3838
 
 # finally, instruct how to launch the Shiny app when the container is started
-CMD ["R", "-e", "shiny::runApp('/root/MSstats-Shiny')"]
+CMD ["R", "-e", "shiny::runApp('/home/MSstats-Shiny')"]

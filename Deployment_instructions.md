@@ -12,5 +12,6 @@ please follow the steps below.
 5. Pull repository updates.
 6. Build a new docker image - "sudo docker build -t <image name> ."
 7. Navigate to the shinyproxy/target folder and edit the application.yml file to launch your new image (just replace the old image name with the new one)
-8. In the same folder launch Shinyproxy - "sudo java -jar shinyproxy-2.6.1.jar"
-9. Use command "sudo docker images" to find old image and delete using "sudo docker image rm -f <old id>"
+8. The application is currently run using the "nohup" command. To end this you need to run "ps aux | grep java" and kill the "shinyproxy" process using "kill -9 <id>". You also need to stop the docker. Run "docker container ls" to find the running container. Kill it using "docker stop <id>"
+9. In the same folder launch Shinyproxy - "nohup java -jar shinyproxy-2.6.1.jar &"
+10. Use command "sudo docker images" to find old image and delete using "sudo docker image rm -f <old id>"

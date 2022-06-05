@@ -75,10 +75,10 @@ sbp_params = sidebarPanel(
     #h4("3. Used features"),
     radioButtons("features_used",
                  label = h4("3. Used features"),
-                 c("Use all features" = "all_feat", "Use top N features" = "n_feat", 
-                   "Remove uninformative features & outliers" = "clean_features")),
+                 c("Use all features" = "all", "Use top N features" = "topN", 
+                   "Remove uninformative features & outliers" = "highQuality")),
     #checkboxInput("all_feat", "Use all features", value = TRUE),
-    conditionalPanel(condition = "input.features_used =='n_feat'",
+    conditionalPanel(condition = "input.features_used =='topN'",
                      uiOutput("features")),
     #uiOutput("features"),
     tags$hr(),
@@ -120,13 +120,13 @@ sbp_params = sidebarPanel(
                                           title = "If unchecked the values set as cutoff for censored will be used")), 
                                    value = TRUE
                      )),
-    # cutoff for censored
-    conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
-                     selectInput("cutoff", "cutoff value for censoring", 
-                                 c("min value per feature"="minFeature", 
-                                   "min value per feature and run"="minFeatureNRun", 
-                                   "min value per run"="minRun"))),
-    
+    # # cutoff for censored
+    # conditionalPanel(condition = "input.censInt == 'NA' || input.censInt == '0'",
+    #                  selectInput("cutoff", "cutoff value for censoring", 
+    #                              c("min value per feature"="minFeature", 
+    #                                "min value per feature and run"="minFeatureNRun", 
+    #                                "min value per run"="minRun"))),
+    # 
     
     tags$hr(),
     tags$style(HTML('#run{background-color:orange}')),

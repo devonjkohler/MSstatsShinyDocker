@@ -248,7 +248,14 @@ get_data <- eventReactive(input$proceed1, {
         
       }
       else if(input$DDA_DIA=="SRM_PRM") {
-        mydata <- data
+        # mydata <- data
+        mydata <- SkylinetoMSstatsFormat(data,
+                                         annotation = get_annot(),
+                                         filter_with_Qvalue = TRUE, 
+                                         qvalue_cutoff = 0.01, 
+                                         fewMeasurements="remove", 
+                                         removeProtein_with1Feature = TRUE,
+                                         use_log_file = FALSE)
       }
       
     }
@@ -282,8 +289,8 @@ get_data <- eventReactive(input$proceed1, {
     else if(input$filetype == 'PD') {
       
       if(input$DDA_DIA=="TMT"){
-        print(infile$datapath)
-        data <- read.delim(infile$datapath)
+
+        data <- read.csv(infile$datapath, header = T, sep = input$sep, stringsAsFactors=F)
         mydata <- PDtoMSstatsTMTFormat(input = data, 
                                        annotation = get_annot(),
                                        which.proteinid = input$which.proteinid, ## same as default
@@ -300,7 +307,7 @@ get_data <- eventReactive(input$proceed1, {
       
     }
     else if(input$filetype == 'spec') {
-      data <- read_xls(infile$datapath, header = T)
+      data <- read.csv(infile$datapath, sep = "\t")
       mydata <- SpectronauttoMSstatsFormat(data,
                                            annotation = get_annot(),
                                            filter_with_Qvalue = TRUE, ## same as default
@@ -608,6 +615,7 @@ get_summary1 <- eventReactive(input$proceed1, {
     }
     
   } else{
+    print(df)
     df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                             "Number of Biological Replicates" = n_distinct(BioReplicate),
                             "Number of Fractions" = nf,

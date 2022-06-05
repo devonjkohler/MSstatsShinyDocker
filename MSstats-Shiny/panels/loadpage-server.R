@@ -364,7 +364,6 @@ get_data <- eventReactive(input$proceed1, {
       mydata <- PhilosophertoMSstatsTMTFormat(path = infile, folder = TRUE, annotation = get_annot(),
                                               protein_id_col = input$which.proteinid,
                                               use_log_file = FALSE)
-      print("here2")
     }
   }
   mydata <- unique(as.data.frame(mydata))
@@ -615,7 +614,6 @@ get_summary1 <- eventReactive(input$proceed1, {
     }
     
   } else{
-    print(df)
     df1 <- df %>% summarise("Number of Conditions" = n_distinct(Condition),
                             "Number of Biological Replicates" = n_distinct(BioReplicate),
                             "Number of Fractions" = nf,

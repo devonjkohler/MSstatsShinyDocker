@@ -6,7 +6,7 @@
 output$Names <- renderUI({
   if (input$standards == "Proteins") {
     if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
-      selectizeInput("names", "choose standard", unique(get_data()[2]), multiple = T)
+      selectizeInput("names", "choose standard", unique(get_data()[1]), multiple = T)
     }
     else{
       selectizeInput("names", "choose standard", unique(get_data()[1]), multiple = T)
@@ -137,7 +137,7 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
     rm_feat = FALSE
   }
   
-  print(rm_feat)
+  print(input$names)
   ## Prepare MSstats for summarization
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
                                          toupper(input$norm))
@@ -177,7 +177,6 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
   if (busy_indicator){
     remove_modal_progress() # remove it when done
   }
-  print(nrow(preprocessed$ProteinLevelData))
   return(preprocessed)
   
 }
@@ -362,18 +361,12 @@ preprocess_data_code <- eventReactive(input$calculate, {
     } else {
       code_n_feat = 'NULL'
     }
-    if (input$norm != 'globalStandards'){
-      code_name = "NULL"
-    } else {
-      ## TODO: This doesn't work if values are a vector
-      code_name = input$name
-    }
-    print(input$censInt)
+
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes <- paste(codes, "summarized <- MSstats:::dataProcess(data,
                                normalization = \'", input$norm,"\',\t\t\t\t   
                                logTrans = ", as.numeric(input$log),",\t\t\t\t   
-                               nameStandards = ", code_name, ",\t\t\t\t  
+                               nameStandards = ", paste0("c('", paste(input$names, collapse = "', '"), "')"), ",\t\t\t\t  
                                featureSubset = \'", input$features_used, "\',\t\t\t\t  
                                n_top_feature = ", code_n_feat, ",\t\t\t\t  
                                summaryMethod=\"TMP\",

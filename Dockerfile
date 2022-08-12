@@ -23,7 +23,7 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 RUN R -e "install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))"
 
 # install Bioconductor specific packages
-RUN R -e "BiocManager::install(c('MSstatsTMT', 'biomaRt'))"
+RUN R -e "BiocManager::install(c('MSstatsPTM', 'biomaRt'))"
 
 # copy the app onto the image in folder /root/
 RUN mkdir /home/MSstats-Shiny

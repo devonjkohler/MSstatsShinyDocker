@@ -1,4 +1,3 @@
-
 ######## UI ########
 
 # standards name
@@ -61,6 +60,7 @@ output$features <- renderUI({
   req(get_data())
   max_feat <- reactive ({
     ## Old code for only 20 features. Meena thought this should be all uniques
+    ## TODO: Need to fix this bc hard to be specific with slider.
     # if (nrow(unique(get_data()[1])) < 20) {
     #   m_feat <- nrow(unique(get_data()[1]))
     # }
@@ -104,16 +104,27 @@ observe ({
 
 output$Which <- renderUI({
   if ((input$DDA_DIA!="TMT" && input$type2 == "QCPlot") || (input$DDA_DIA=="TMT" && input$type1 == "QCPlot")) {
-    if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
-      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[2])))
+    if (input$DDA_DIA == "PTM"){
+      if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
+        selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()$PTM[2])))
+      }
+      else{
+        selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()$PTM[1])))
+      }
+    } else {
+      if((input$DDA_DIA=="SRM_PRM" && input$filetype=="sky")||(input$DDA_DIA=="DIA" && input$filetype=="ump")){
+        selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[2])))
+      }
+      else{
+        selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[1])))
+      }
     }
-    else{
-      selectizeInput("which", "Show plot for", choices = c("", "ALL PROTEINS" = "allonly", unique(get_data()[1])))
+  } else {
+    if (input$DDA_DIA == "PTM"){
+      selectizeInput("which", "Show plot for", choices = c("", unique(get_data()$PTM[1])))
+    } else {
+      selectizeInput("which", "Show plot for", choices = c("", unique(get_data()[1])))
     }
-    
-  }
-  else {
-    selectizeInput("which", "Show plot for", choices = c("", unique(get_data()[1])))
   }
 })
 
@@ -131,6 +142,12 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
     counter = 0
   }
   
+  if (input$features_used == "highQuality"){
+    rm_feat = TRUE
+  } else {
+    rm_feat = FALSE
+  }
+  
   ## Prepare MSstats for summarization
   peptides_dict = makePeptidesDictionary(as.data.table(unclass(data)), 
                                          toupper(input$norm))
@@ -139,10 +156,10 @@ lf_summarization_loop = function(data, busy_indicator = TRUE){
   prep_input = MSstatsMergeFractions(prep_input)
   prep_input = MSstatsHandleMissing(prep_input, "TMP", input$MBi,
                                     "NA", quantile())
-  prep_input = MSstatsSelectFeatures(prep_input, "all", input$n_feat, 2)
+  prep_input = MSstatsSelectFeatures(prep_input, input$features_used, input$n_feat, 2)
   processed = getProcessed(prep_input)
   prep_input = MSstatsPrepareForSummarization(prep_input, "TMP", input$MBi, 
-                                              input$censInt, FALSE)
+                                              input$censInt, rm_feat)
   
   input_split = split(prep_input, prep_input$PROTEIN)
   summarized_results = vector("list", length(proteins))
@@ -231,7 +248,7 @@ tmt_summarization_loop = function(data){
       ## Make LF flow into a function and replace it here
       msstats_summary = lf_summarization_loop(single_run, FALSE)
       
-      feature_level_data = msstats_summary$FeatureLevelData 
+      feature_level_data = msstats_summary$FeatureLevelData
       msstats_cols = c("PROTEIN", "PEPTIDE", "originalRUN", "censored",
                        "predicted", "newABUNDANCE")
       msstats_cols = intersect(msstats_cols, colnames(feature_level_data))
@@ -306,20 +323,32 @@ preprocess_data = eventReactive(input$run, {
   
   ## Here we run the underlying functions for MSstats and MSstatsTMT 
   ## summarization. Done so we can loop over proteins and create a progress bar
-  if(input$DDA_DIA == "TMT"){
+  if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+
+    preprocessed_ptm = lf_summarization_loop(input_data$PTM)
+    preprocessed_unmod = lf_summarization_loop(input_data$PROTEIN)
+    preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
+    
+  } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+
+    preprocessed_ptm = tmt_summarization_loop(input_data$PTM)
+    preprocessed_unmod = tmt_summarization_loop(input_data$PROTEIN)
+    preprocessed = list(PTM = preprocessed_ptm, PROTEIN = preprocessed_unmod)
+    
+  } else if(input$DDA_DIA == "TMT"){
     
     ## Run MSstatsTMT summarization
     preprocessed = tmt_summarization_loop(input_data)
-
+    
   } else {
     
     ## Run LF MSstats summarization
     preprocessed = lf_summarization_loop(input_data)
-
+    
   }
-
+  
   return(preprocessed)
-  })
+})
 
 preprocess_data_code <- eventReactive(input$calculate, { 
   
@@ -347,29 +376,20 @@ preprocess_data_code <- eventReactive(input$calculate, {
                             address = FALSE)\n", sep="")
   }
   else{
-    if (input$features_used == "all_feat"){
-      code_feat = "all"
+    if (input$features_used == "all"){
       code_n_feat = 'NULL'
-    } else if (input$features_used == "n_feat") {
-      code_feat = "topN"
+    } else if (input$features_used == "topN") {
       code_n_feat = input$n_feat
     } else {
-      code_feat = "highQuality"
       code_n_feat = 'NULL'
     }
-    if (input$norm != 'globalStandards'){
-      code_name = "NULL"
-    } else {
-      ## TODO: This doesn't work if values are a vector
-      code_name = input$name
-    }
-    print(input$censInt)
+    
     codes <- paste(codes, "\n# use MSstats for protein summarization\n", sep = "")
     codes <- paste(codes, "summarized <- MSstats:::dataProcess(data,
                                normalization = \'", input$norm,"\',\t\t\t\t   
                                logTrans = ", as.numeric(input$log),",\t\t\t\t   
-                               nameStandards = ", code_name, ",\t\t\t\t  
-                               featureSubset = \'", code_feat, "\',\t\t\t\t  
+                               nameStandards = ", paste0("c('", paste(input$names, collapse = "', '"), "')"), ",\t\t\t\t  
+                               featureSubset = \'", input$features_used, "\',\t\t\t\t  
                                n_top_feature = ", code_n_feat, ",\t\t\t\t  
                                summaryMethod=\"TMP\",
                                censoredInt=\'", input$censInt, "\',\t\t\t\t   
@@ -389,14 +409,6 @@ preprocess_data_code <- eventReactive(input$calculate, {
   return(codes)
 })
 
-
-
-# plot data
-# onclick("run", {
-#   preprocess_data()
-# })
-
-
 plotresult <- function(saveFile, protein, summary, original) {
   if (input$which != "") {
     id <- as.character(UUIDgenerate(FALSE))
@@ -410,7 +422,7 @@ plotresult <- function(saveFile, protein, summary, original) {
       }
       return (path_id)
     }
-    
+
     if(input$DDA_DIA == "TMT"){
       
       dataProcessPlotsTMT(preprocess_data(),
@@ -432,31 +444,38 @@ plotresult <- function(saveFile, protein, summary, original) {
                           address = path()
       )
       
-    }
-    
-    else{
+    } else if (input$DDA_DIA == "PTM"){
       
-      plot <- dataProcessPlots(data = preprocess_data(),
-                               type=input$type2,
-                               featureName = input$fname,
-                               ylimUp = F,
-                               ylimDown = F,
-                               scale = input$cond_scale,
-                               interval = input$interval,
-                               #              x.axis.size = input_xsize,
-                               #              y.axis.size = input_ysize,
-                               #              t.axis.size = input_tsize,
-                               #              text.angle = input_tangle,
-                               #              legend.size = input_legend,
-                               #              dot.size.profile = input_dot_prof,
-                               #              dot.size.condition = input_dot_cond,
-                               #              width = input_width,
-                               #              height = input_height,
-                               which.Protein = protein,
-                               originalPlot = original,
-                               summaryPlot = input$summ,
-                               save_condition_plot_result = FALSE,
-                               address = path()
+      plot = dataProcessPlotsPTM(preprocess_data(),
+                                 type=input$type1,
+                                 which.PTM = protein,
+                                 summaryPlot = input$summ,
+                                 address = path()
+      )
+      
+    } else{
+      
+      plot = dataProcessPlots(data = preprocess_data(),
+                              type=input$type2,
+                              featureName = input$fname,
+                              ylimUp = F,
+                              ylimDown = F,
+                              scale = input$cond_scale,
+                              interval = input$interval,
+                              #              x.axis.size = input_xsize,
+                              #              y.axis.size = input_ysize,
+                              #              t.axis.size = input_tsize,
+                              #              text.angle = input_tangle,
+                              #              legend.size = input_legend,
+                              #              dot.size.profile = input_dot_prof,
+                              #              dot.size.condition = input_dot_cond,
+                              #              width = input_width,
+                              #              height = input_height,
+                              which.Protein = protein,
+                              originalPlot = original,
+                              summaryPlot = input$summ,
+                              save_condition_plot_result = FALSE,
+                              address = path()
       )
       
     }
@@ -507,9 +526,11 @@ output$caption <- renderText({
 
 observeEvent(input$run,{
   
-  if(input$DDA_DIA=="TMT"){
-    shinyjs::enable("prepr_csv")
-    shinyjs::enable("summ_csv")
+  if(input$DDA_DIA=="PTM"){
+    shinyjs::enable("prepr_csv_ptm")
+    shinyjs::enable("summ_csv_ptm")
+    shinyjs::enable("prepr_csv_prot")
+    shinyjs::enable("summ_csv_prot")
   } else {
     shinyjs::enable("prepr_csv")
     shinyjs::enable("summ_csv")
@@ -554,6 +575,24 @@ output$prepr_csv <- downloadHandler(
   }
 )
 
+output$prepr_csv_ptm <- downloadHandler(
+  filename = function() {
+    paste("PTM_Feature_level_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(preprocess_data()$PTM$FeatureLevelData, file, row.names = F)
+  }
+)
+
+output$prepr_csv_prot <- downloadHandler(
+  filename = function() {
+    paste("Protein_Feature_level_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(preprocess_data()$PROTEIN$FeatureLevelData, file, row.names = F)
+  }
+)
+
 output$summ_csv <- downloadHandler(
   filename = function() {
     paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
@@ -563,40 +602,58 @@ output$summ_csv <- downloadHandler(
   }
 )
 
+output$summ_csv_ptm <- downloadHandler(
+  filename = function() {
+    paste("PTM_level_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(preprocess_data()$PTM$ProteinLevelData, file, row.names = F)
+  }
+)
+
+output$summ_csv_prot <- downloadHandler(
+  filename = function() {
+    paste("Protein_level_data-", Sys.Date(), ".csv", sep="")
+  },
+  content = function(file) {
+    write.csv(preprocess_data()$PROTEIN$ProteinLevelData, file, row.names = F)
+  }
+)
+
 # download/view plots
 
- observeEvent(input$saveone, {
-   path <- plotresult(TRUE, input$which, FALSE, TRUE)
-   if (input$type1 == "ProfilePlot" || input$type2 == "ProfilePlot") {
-     js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
-   else if (input$type2 == "ConditionPlot") {
-     js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
-   else if (input$type1 == "QCPlot" || input$type2 == "QCPlot") {
-     js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
- })
-   
- observeEvent(input$saveall, {
-   path <- plotresult(TRUE, "all", FALSE, TRUE)
-   if (input$type1 == "ProfilePlot" || input$type2 == "ProfilePlot") {
-     js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
-   else if (input$type2 == "ConditionPlot") {
-     js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
-   else if (input$type1 == "QCPlot" || input$type2 == "QCPlot") {
-     js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
-     shinyjs::runjs(js);
-   }
- })
- 
+observeEvent(input$saveone, {
+  path <- plotresult(TRUE, input$which, FALSE, TRUE)
+  if (input$type1 == "ProfilePlot" || input$type2 == "ProfilePlot") {
+    js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type2 == "ConditionPlot") {
+    js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type1 == "QCPlot" || input$type2 == "QCPlot") {
+    js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+})
+
+observeEvent(input$saveall, {
+  path <- plotresult(TRUE, "all", FALSE, TRUE)
+  if (input$type1 == "ProfilePlot" || input$type2 == "ProfilePlot") {
+    js <- paste("window.open('", path, "ProfilePlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type2 == "ConditionPlot") {
+    js <- paste("window.open('", path, "ConditionPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+  else if (input$type1 == "QCPlot" || input$type2 == "QCPlot") {
+    js <- paste("window.open('", path, "QCPlot.pdf')", sep="")
+    shinyjs::runjs(js);
+  }
+})
+
 output$showplot <- renderUI({
   tagList(
     plotOutput("theplot"),
@@ -608,8 +665,8 @@ output$showplot <- renderUI({
                      bsTooltip(id = "saveone", title = "Open plot as pdf. \
                                Popups must be enabled", placement = "bottom", 
                                trigger = "hover")
-                     )
     )
+  )
 })
 
 theplot <- reactive({
@@ -640,16 +697,30 @@ abundance <- eventReactive(input$update_results, {
              c("Abundance", "Condition", "BioReplicate"), 
              c("LogIntensities", "GROUP", "SUBJECT"))
     abundant$results <- quantification(temp,
-                   type = input$typequant,
-                   format = input$format,
-                   use_log_file = FALSE)
-  }
-  else{
+                                       type = input$typequant,
+                                       format = input$format,
+                                       use_log_file = FALSE)
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
+    temp <- copy(preprocess_data())
+    setnames(temp$PTM$ProteinLevelData, 
+             c("Abundance", "Condition", "BioReplicate"), 
+             c("LogIntensities", "GROUP", "SUBJECT"))
+    abundant$results <- quantification(temp$PTM,
+                                       type = input$typequant,
+                                       format = input$format,
+                                       use_log_file = FALSE)
+  } else if (input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
+    temp <- copy(preprocess_data())
+    abundant$results <-quantification(temp$PTM,
+                                      type = input$typequant,
+                                      format = input$format,
+                                      use_log_file = FALSE)
+  } else{
     temp <- copy(preprocess_data())
     abundant$results <-quantification(temp,
-                   type = input$typequant,
-                   format = input$format,
-                   use_log_file = FALSE)
+                                      type = input$typequant,
+                                      format = input$format,
+                                      use_log_file = FALSE)
   }
   
   return(abundant$results)
@@ -668,7 +739,7 @@ output$abundance <- renderUI({
   } else {
     tagList(
       dataTableOutput("abundanceTable") )
-    }
+  }
 })
 output$abundanceTable <- renderDataTable(abundance())
 
@@ -699,4 +770,3 @@ output$download_summary <- downloadHandler(
 observeEvent(input$proceed4, {
   updateTabsetPanel(session = session, inputId = "tablist", selected = "StatsModel")
 })
-

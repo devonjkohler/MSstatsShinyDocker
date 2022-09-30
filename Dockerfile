@@ -27,7 +27,7 @@ RUN R -e "install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid',
 # install Bioconductor specific packages
 RUN R -e "BiocManager::install(c('MSstatsPTM', 'biomaRt'))"
 
-RUN R -e "install.packages('~/MSstatsShinyDocker/MSstatsShiny/', repos = NULL, type = 'source')
+RUN R -e "install.packages('~/MSstatsShinyDocker/MSstatsShiny/', repos = NULL, type = 'source')"
 
 # copy the Rprofile.site set up file to the image.
 # this make sure your Shiny app will run on the port expected by

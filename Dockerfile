@@ -22,7 +22,7 @@ RUN apt-get -y install libcurl4-gnutls-dev
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 # install basic R functionalities - Need to reduce dependecies...
-RUN R -e "install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager', 'devtools'))"
+RUN R -e "install.packages(c('devtools', 'shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))"
 
 # install Bioconductor specific packages
 RUN R -e "BiocManager::install(c('MSstatsPTM', 'biomaRt'))"

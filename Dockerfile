@@ -17,10 +17,6 @@ RUN apt-get update && apt-get install -y \
     libssl1.0
 
 # Run some stuff to install devtools
-RUN sudo cp /etc/apt/sources.list /etc/apt/sources.list~
-RUN sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
-RUN sudo apt-get update
-RUN apt-get -y build-dep libcurl4-gnutls-dev
 RUN apt-get -y install libcurl4-gnutls-dev
 
 RUN apt-get update && apt-get -y install cmake protobuf-compiler

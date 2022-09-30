@@ -9,13 +9,15 @@ RUN apt-get update && apt-get install -y \
     sudo \
     pandoc \
     pandoc-citeproc \
-    libcurl4-gnutls-dev \
     libcairo2-dev \
     libxt-dev \
     libxml2-dev\
     libssl-dev \
     libssh2-1-dev \
     libssl1.0
+
+RUN apt-get -y build-dep libcurl4-gnutls-dev
+RUN apt-get -y install libcurl4-gnutls-dev
 
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 

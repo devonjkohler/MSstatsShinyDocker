@@ -20,14 +20,13 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get -y install cmake protobuf-compiler
 
 # install basic R functionalities - Need to reduce dependecies...
-RUN R -e "install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))"
+RUN R -e "install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager', 'devtools'))"
 
 # install Bioconductor specific packages
 RUN R -e "BiocManager::install(c('MSstatsPTM', 'biomaRt'))"
 
 # copy the app onto the image in folder /root/
-RUN mkdir /home/MSstats-Shiny
-COPY MSstats-Shiny /home/MSstats-Shiny
+RUN R -e "devtools::install_github('Vitek-Lab/MSstatsShiny')"
 
 # copy the Rprofile.site set up file to the image.
 # this make sure your Shiny app will run on the port expected by
@@ -40,4 +39,4 @@ COPY Rprofile.site /usr/local/lib/R/etc/
 EXPOSE 3838
 
 # finally, instruct how to launch the Shiny app when the container is started
-CMD ["R", "-e", "shiny::runApp('/home/MSstats-Shiny')"]
+CMD ["R", "-e", "MSstatsShiny::launch_MSstatsShiny()"]

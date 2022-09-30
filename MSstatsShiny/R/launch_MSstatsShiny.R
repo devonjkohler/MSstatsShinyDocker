@@ -23,7 +23,7 @@ launch_MSstatsShiny = function(launch_app=TRUE){
   }
   
   if (launch_app){
-    runApp(appDir, display.mode = "normal")
+    runApp(appDir, host='0.0.0.0', port = 3838)
   }
   
 }

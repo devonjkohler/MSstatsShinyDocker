@@ -23,7 +23,7 @@ significant = reactiveValues()
 
 observe({
   if(input$DDA_DIA == "TMT"){
-    shinyjs::hide("Design")
+    hide("Design")
   }
   else{
     shinyjs::show("Design")
@@ -73,7 +73,7 @@ output$WhichComp = renderUI ({
 
 output$WhichProt = renderUI ({
   selectInput("whichProt",
-                 label = h4("which protein to plot"), unique(get_data()[[1]]))
+              label = h4("which protein to plot"), unique(get_data()[[1]]))
 })
 
 output$WhichProt1 = renderUI ({
@@ -129,7 +129,7 @@ matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | inpu
     index1 = reactive({which(choices() == input$group1)})
     index2 = reactive({which(choices() == input$group2)})
     comp_list$dList = unique(c(isolate(comp_list$dList), paste(input$group1, "vs", 
-                                                                input$group2, sep = " ")))
+                                                               input$group2, sep = " ")))
     contrast$row = matrix(row(), nrow=1)
     contrast$row[index1()] = 1
     contrast$row[index2()] = -1
@@ -140,7 +140,6 @@ matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | inpu
       contrast$matrix = rbind(contrast$matrix, contrast$row)
       contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
     }
-    print(contrast$matrix)
     rownames(contrast$matrix) = comp_list$dList
     colnames(contrast$matrix) = choices()
   }
@@ -169,24 +168,22 @@ matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | inpu
       contrast$matrix = rbind(contrast$matrix, contrast$row)
       contrast$matrix = rbind(contrast$matrix[!duplicated(contrast$matrix),])
     }
-    print(contrast$matrix)
     rownames(contrast$matrix) = comp_list$dList
     colnames(contrast$matrix) = choices()
   }
   
   else if (input$def_comp == "all_one") {
-    print(choices())
     for (index in 1:length(choices())) {
       index3 = reactive({which(choices() == input$group3)})
       if(index == index3()) next
       if(input$DDA_DIA=="TMT"){
         comp_list$dList = c(isolate(comp_list$dList), 
-                             paste(choices()[index], " vs ", 
-                                   input$group3, sep = ""))
+                            paste(choices()[index], " vs ", 
+                                  input$group3, sep = ""))
       } else{
         comp_list$dList = c(isolate(comp_list$dList), 
-                             paste(choices()[index], " vs ", 
-                                   input$group3, sep = ""))
+                            paste(choices()[index], " vs ", 
+                                  input$group3, sep = ""))
       }
       
       contrast$row = matrix(row(), nrow=1)
@@ -209,12 +206,12 @@ matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | inpu
         if (index < index1) {
           if(input$DDA_DIA=="TMT"){
             comp_list$dList = c(isolate(comp_list$dList), 
-                                 paste(choices()[index], " vs ", 
-                                       choices()[index1], sep = ""))
+                                paste(choices()[index], " vs ", 
+                                      choices()[index1], sep = ""))
           } else{
             comp_list$dList = c(isolate(comp_list$dList), 
-                                 paste(choices()[index], " vs ", 
-                                       choices()[index1], sep = ""))
+                                paste(choices()[index], " vs ", 
+                                      choices()[index1], sep = ""))
           }
           contrast$row = matrix(row(), nrow=1)
           contrast$row[index] = 1
@@ -231,14 +228,14 @@ matrix_build = eventReactive(input$submit | input$submit1 | input$submit2 | inpu
       }
     }
   }
-  shinyjs::enable("calculate")
+  enable("calculate")
   return(contrast$matrix)
 })
 
 # clear matrix
 
 observeEvent({input$clear | input$clear1 | input$clear2 | input$clear3},  {
-  shinyjs::disable("calculate")
+  disable("calculate")
   comp_list$dList = NULL
   contrast$matrix = NULL
 })
@@ -249,30 +246,29 @@ data_comparison = eventReactive(input$calculate, {
   input_data = preprocess_data()
   contrast.matrix = matrix_build()
   
-  print(matrix_build())
   if (input$DDA_DIA == "PTM" & input$PTMTMT == "Yes"){
-    model_ptm = tmt_model(input_data$PTM, input, contrast.matrix)
-    model_protein = tmt_model(input_data$PROTEIN, input, contrast.matrix)
-    model_adj = apply_adj(model_ptm$ComparisonResult,
-                          model_protein$ComparisonResult)
+    model_ptm = MSstatsShiny::tmt_model(input_data$PTM, input, contrast.matrix)
+    model_protein = MSstatsShiny::tmt_model(input_data$PROTEIN, input, contrast.matrix)
+    model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
+                                        model_protein$ComparisonResult)
     model = list('PTM.Model' = model_ptm$ComparisonResult, 
                  'PROTEIN.Model' = model_protein$ComparisonResult,
-                'ADJUSTED.Model' = model_adj)
-
+                 'ADJUSTED.Model' = model_adj)
+    
   } else if(input$DDA_DIA == "PTM" & input$PTMTMT == "No"){
-    model_ptm = lf_model(input_data$PTM, contrast.matrix)
-    model_protein = lf_model(input_data$PROTEIN, contrast.matrix)
-    model_adj = apply_adj(model_ptm$ComparisonResult,
-                          model_protein$ComparisonResult)
+    model_ptm = MSstatsShiny::lf_model(input_data$PTM, contrast.matrix)
+    model_protein = MSstatsShiny::lf_model(input_data$PROTEIN, contrast.matrix)
+    model_adj = MSstatsShiny::apply_adj(model_ptm$ComparisonResult,
+                                        model_protein$ComparisonResult)
     model = list('PTM.Model' = model_ptm$ComparisonResult, 
                  'PROTEIN.Model' = model_protein$ComparisonResult,
                  'ADJUSTED.Model' = model_adj)
     
   } else if(input$DDA_DIA=="TMT"){
-    model = tmt_model(input_data, input, contrast.matrix)
+    model = MSstatsShiny::tmt_model(input_data, input, contrast.matrix)
   }
   else{
-    model = lf_model(input_data, contrast.matrix)
+    model = MSstatsShiny::lf_model(input_data, contrast.matrix)
   }
   
   return(model)
@@ -315,7 +311,7 @@ data_comparison_code = eventReactive(input$calculate, {
                   contrast.matrix = contrast.matrix)\n", sep = "")
   }
   else{
-
+    
     codes = paste(codes, "\n# Model-based comparison\n", sep = "")
     codes = paste(codes,"model = MSstats::groupComparison(contrast.matrix, summarized)\n", sep = "")
   }
@@ -357,7 +353,7 @@ SignificantProteins = eventReactive(input$calculate,{
     significant = list(PTM.Model=sig_unadj, 
                        PROTEIN.Model=sig_prot, 
                        ADJUSTED.Model=sig_adj)
-
+    
   } else if(input$DDA_DIA=="TMT"){
     data_comp = data_comparison()
     significant = data_comp$ComparisonResult[
@@ -366,38 +362,21 @@ SignificantProteins = eventReactive(input$calculate,{
   } else {
     significant = with(data_comparison(), round_df(ComparisonResult[
       ComparisonResult$adj.pvalue < input$signif, ]))
-
+    
   }
   return(significant)
 })
 
-# comparison plots
-
-# observeEvent(input$plotresults, {
-#   if(input$typeplot != "ComparisonPlot") {
-#     group_comparison(TRUE)
-#   }
-#   else {
-#     group_comparison(TRUE)
-#   }
-# })
-#
-# observeEvent(input$viewresults, {
-#   if(input$typeplot != "ComparisonPlot") {
-#     group_comparison(TRUE)
-#   }
-#   else {
-#     group_comparison(TRUE)
-#   }
-# })
-
 group_comparison = function(saveFile1, pdf) {
   
+  show_modal_spinner()
+  
   id1 = as.character(UUIDgenerate(FALSE))
-  id_address1 = paste("tmp/",id1, sep = "")
+  id_address1 = paste(tempdir(), "\\", id1, sep = "")
+  
   path1 = function() {
     if (saveFile1) {
-      path1_id = paste("www/", id_address1, sep = "")
+      path1_id = paste(tempdir(), "\\", id1, sep = "")
     }
     else {
       path1_id = FALSE
@@ -407,48 +386,50 @@ group_comparison = function(saveFile1, pdf) {
   
   if (input$DDA_DIA=="PTM"){
     plot1 = groupComparisonPlotsPTM(data_comparison(),
-                            input$typeplot,
-                            sig=input$sig,
-                            FCcutoff=input$FC,
-                            logBase.pvalue=as.integer(input$logp),
-                            ProteinName = input$pname,
-                            which.Comparison = input$whichComp,
-                            address = path1())
+                                    input$typeplot,
+                                    sig=input$sig,
+                                    FCcutoff=input$FC,
+                                    logBase.pvalue=as.integer(input$logp),
+                                    ProteinName = input$pname,
+                                    which.Comparison = input$whichComp,
+                                    address = FALSE)#path1())
     
     
   } else if(input$DDA_DIA=="TMT"){
     
-    plot1 = groupComparisonPlots2(data=data_comparison()$ComparisonResult,
-                                   type=input$typeplot,
-                                   sig=input$sig,
-                                   FCcutoff=input$FC,
-                                   logBase.pvalue=input$logp,
-                                   ProteinName=input$pname,
-                                   numProtein=input$nump, 
-                                   clustering=input$cluster, 
-                                   which.Comparison=input$whichComp,
-                                   which.Protein = input$whichProt,
-                                   address=path1(),
-                                   savePDF=pdf
+    plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+                                                type=input$typeplot,
+                                                sig=input$sig,
+                                                FCcutoff=input$FC,
+                                                logBase.pvalue=input$logp,
+                                                ProteinName=input$pname,
+                                                numProtein=input$nump, 
+                                                clustering=input$cluster, 
+                                                which.Comparison=input$whichComp,
+                                                which.Protein = input$whichProt,
+                                                address=path1(),
+                                                savePDF=pdf
     )
     
   } else{
     
-    plot1 = groupComparisonPlots2(data=data_comparison()$ComparisonResult,
-                                   type=input$typeplot,
-                                   sig=input$sig,
-                                   FCcutoff=input$FC,
-                                   logBase.pvalue=input$logp,
-                                   ProteinName=input$pname,
-                                   numProtein=input$nump, 
-                                   clustering=input$cluster, 
-                                   which.Comparison=input$whichComp,
-                                   which.Protein = input$whichProt,
-                                   address=path1(),
-                                   savePDF=pdf
+    plot1 = MSstatsShiny::groupComparisonPlots2(data=data_comparison()$ComparisonResult,
+                                                type=input$typeplot,
+                                                sig=input$sig,
+                                                FCcutoff=input$FC,
+                                                logBase.pvalue=input$logp,
+                                                ProteinName=input$pname,
+                                                numProtein=input$nump, 
+                                                clustering=input$cluster, 
+                                                which.Comparison=input$whichComp,
+                                                which.Protein = input$whichProt,
+                                                address=path1(),
+                                                savePDF=pdf
     )
     
   }
+  
+  remove_modal_spinner()
   
   if(saveFile1) {
     return(id_address1)
@@ -456,6 +437,7 @@ group_comparison = function(saveFile1, pdf) {
   else {
     return(plot1)
   }
+  
 }
 
 # model assumptions plots
@@ -464,7 +446,7 @@ assumptions1 = function(saveFile3, protein) {
   if (input$whichProt1 != "") {
     id2 = as.character(UUIDgenerate(FALSE))
     id_address2 = paste("tmp/",id2, sep = "")
-    path2 = function()  {
+    path2 = function(saveFile3)  {
       if (saveFile3) {
         path_id2 = paste("www/", id_address2, sep = "")
       } 
@@ -475,10 +457,10 @@ assumptions1 = function(saveFile3, protein) {
     }
     
     plots = modelBasedQCPlots(data=data_comparison(), type=input$assum_type, 
-                               which.Protein = protein, address = path2())
+                              which.Protein = protein, address = path2())
     
     if(saveFile3) {
-      return(id_address2)
+      return(path2())
     }
     else {
       return(plots)
@@ -526,7 +508,7 @@ output$message = renderText({
 })
 observeEvent(input$calculate, {output$code.button = renderUI(
   downloadButton("download_code", "Download analysis code", icon("download"),
-    style="color: #000000; background-color: #75ba82; border-color: #000000"))})
+                 style="color: #000000; background-color: #75ba82; border-color: #000000"))})
 
 output$matrix = renderUI({
   tagList(
@@ -544,7 +526,7 @@ output$matrix = renderUI({
 
 output$table = renderDataTable({
   matrix_build()
-}#, rownames = T
+}
 )
 
 # table of significant proteins
@@ -553,7 +535,7 @@ output$table_results = renderUI({
   req(SignificantProteins())
   
   if (is.null(significant)) {
-
+    
     tagList(
       tags$br())
   } else {
@@ -574,9 +556,7 @@ output$adj_table_results = renderUI({
   req(data_comparison())
   req(SignificantProteins())
   significant = SignificantProteins()
-  print(significant$ADJUSTED.Model)
   if (is.null(significant$ADJUSTED.Model)) {
-    print(TRUE)
     tagList(
       tags$br())
   } else {
@@ -634,27 +614,25 @@ output$prot_table_results = renderUI({
 
 output$significant = renderDataTable({
   SignificantProteins()
-}#, rownames = F
+}
 )
 
 output$adj_significant = renderDataTable({
   SignificantProteins()$ADJUSTED.Model
-}#, rownames = F
+}
 )
 
 output$unadj_significant = renderDataTable({
   SignificantProteins()$PTM.Model
-}#, rownames = F
+}
 )
 
 output$prot_significant = renderDataTable({
   SignificantProteins()$PROTEIN.Model
-}#, rownames = F
+}
 )
 
-
 # number of significant proteins
-
 output$number = renderText({
   nrow(SignificantProteins())
 })
@@ -672,7 +650,6 @@ output$number_prot = renderText({
 })
 
 # plot in browser 
-
 observeEvent(input$typeplot, {
   updateSelectInput(session, "whichComp", selected = "all")
 })
@@ -692,7 +669,7 @@ observeEvent(input$viewresults, {
 }
 )
 
-observe ({output$comp_plots = renderPlot({
+observe({output$comp_plots = renderPlot({
   group_comparison(FALSE, FALSE)}, height = input$height
 )
 })
@@ -754,11 +731,11 @@ observeEvent(input$saveone1, {
   path = assumptions1(TRUE, input$whichProt1)
   if (input$assum_type == "QQPlots") {
     js = paste("window.open('", path, "QQPlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
   else if (input$type == "ResidualPlots") {
     js = paste("window.open('", path, "ResidualPlots.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
 })
 
@@ -766,11 +743,11 @@ observeEvent(input$saveall1, {
   path = assumptions1(TRUE, "all")
   if (input$assum_type == "QQPlots") {
     js = paste("window.open('", path, "QQPlot.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
   else if (input$type == "ResidualPlots") {
     js = paste("window.open('", path, "ResidualPlots.pdf')", sep="")
-    shinyjs::runjs(js);
+    runjs(js);
   }
 })
 
@@ -814,7 +791,7 @@ output$download_code = downloadHandler(
   },
   content = function(file) {
     writeLines(paste(
-                  data_comparison_code(), sep = ""), file)
+      data_comparison_code(), sep = ""), file)
   })
 
 output$download_signif = downloadHandler(
@@ -850,36 +827,41 @@ output$download_signif_prot = downloadHandler(
   }
 )
 
-observeEvent(input$plotresults, {
-  insertUI(
-    selector = "#comparison_plots",
-    ui=tags$div(
-      if (input$typeplot == "VolcanoPlot") {
-        js = paste("window.open('", group_comparison(TRUE, TRUE), "VolcanoPlot.pdf')", sep="")
-        shinyjs::runjs(js);
-      }
-      else if (input$typeplot == "Heatmap") {
-        js = paste("window.open('", group_comparison(TRUE, TRUE), "Heatmap.pdf')", sep="")
-        shinyjs::runjs(js);
-      }
-      else if (input$typeplot == "ComparisonPlot") {
-        js = paste("window.open('", group_comparison(TRUE, TRUE), "ComparisonPlot.pdf')", sep="")
-        shinyjs::runjs(js);
-      }
-    )
-  )
-})
+output$plotresults = downloadHandler(
+  filename = function() {
+    paste("SummaryPlot-", Sys.Date(), ".pdf", sep="")
+  },
+  content = function(file) {
+    pdf(file)
+    group_comparison(TRUE, TRUE)
+    dev.off()
+  }
+)
 
+# observeEvent(input$plotresults, {
+#   insertUI(
+#     selector = "#comparison_plots",
+#     ui=tags$div(
+#       if (input$typeplot == "VolcanoPlot") {
+#         js = paste("window.open('", group_comparison(TRUE, TRUE), "VolcanoPlot.pdf')", sep="")
+#         print(js)
+#         runjs(js);
+#       }
+#       else if (input$typeplot == "Heatmap") {
+#         js = paste("window.open('", group_comparison(TRUE, TRUE), "Heatmap.pdf')", sep="")
+#         runjs(js);
+#       }
+#       else if (input$typeplot == "ComparisonPlot") {
+#         js = paste("window.open('", group_comparison(TRUE, TRUE), "ComparisonPlot.pdf')", sep="")
+#         runjs(js);
+#       }
+#     )
+#   )
+# })
 
 observeEvent(input$calculate,{
-  shinyjs::enable("Design")
-  shinyjs::enable("typeplot")
-  shinyjs::enable("WhichComp")
-  shinyjs::enable("download_code")
-  
+  enable("Design")
+  enable("typeplot")
+  enable("WhichComp")
+  enable("download_code")
 })
-
-
-# observeEvent(input$power_next, {
-#   updateTabsetPanel(session = session, inputId = "tablist", selected = "Future")
-# })

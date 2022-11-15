@@ -7,7 +7,7 @@
 #' @importFrom shiny runApp
 #' @return Running Shiny Application
 #' 
-#' @param launch_app One of TRUE or FALSE indicating wheter or not to run 
+#' @param launch_app One of TRUE or FALSE indicating whether or not to run 
 #' application. Default is TRUE.
 #' @examples
 #' 
@@ -23,7 +23,7 @@ launch_MSstatsShiny = function(launch_app=TRUE){
   }
   
   if (launch_app){
-    runApp(appDir, host='0.0.0.0', port = 3838)
+    runApp(appDir, display.mode = "normal")
   }
   
 }

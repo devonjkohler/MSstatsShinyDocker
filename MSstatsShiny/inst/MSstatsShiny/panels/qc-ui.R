@@ -1,17 +1,16 @@
 ### sidebar ###
-
 sbp_params = sidebarPanel(
   
   
   # transformation
   
-  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
+  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
                    h4("1. Peptide level normalization", 
                       tipify(icon("question-circle"), 
                              title = "Global median normalization on peptide level data, equalizes medians across all the channels and runs")),
                    checkboxInput("global_norm", "Yes", value = T)),
   
-  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' && input.PTMTMT == 'No'",
+  conditionalPanel(condition = "input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'No')",
                    radioButtons("log", 
                                 label= h4("1. Log transformation", 
                                           tipify(icon("question-circle"), 
@@ -21,7 +20,7 @@ sbp_params = sidebarPanel(
   
   tags$hr(),
   
-  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
+  conditionalPanel(condition = "input.DDA_DIA == 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
                    selectInput("summarization", 
                                label = h4("2. Summarization method", 
                                           tipify(icon("question-circle"), 
@@ -31,17 +30,16 @@ sbp_params = sidebarPanel(
                                  "Log(Sum)" = "LogSum","Median" = "Median"), 
                                selected = "log")),
   
-  conditionalPanel(condition = "(input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes') && input.summarization == 'msstats'",
+  conditionalPanel(condition = "(input.DDA_DIA == 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')) && input.summarization == 'msstats'",
                    checkboxInput("null", label = p("Do not apply cutoff", 
                                                    tipify(icon("question-circle"), 
                                                           title = "Maximum quantile for deciding censored missing values, default is 0.999"))),
                    numericInput("maxQC", NULL, 0.999, 0.000, 1.000, 0.001)),
   
-  #normalisation
-  
-  conditionalPanel(condition="input.DDA_DIA !== 'TMT' && input.PTMTMT !== 'Yes'",
+  # Normalization
+  conditionalPanel(condition="input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'No')",
                    selectInput("norm", 
-                               label = h4("2. Normalisation", 
+                               label = h4("2. Normalization", 
                                           tipify(icon("question-circle"), 
                                                  title = "Normalization to remove systematic bias between MS runs. For more information visit the Help tab")), 
                                c("none" = "FALSE", "equalize medians" = "equalizeMedians", 
@@ -55,7 +53,7 @@ sbp_params = sidebarPanel(
   tags$hr(),
   
   conditionalPanel(
-    condition = "input.DDA_DIA == 'TMT' || input.PTMTMT == 'Yes'",
+    condition = "input.DDA_DIA == 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
     h4("3. Local protein normalization",
        tipify(icon("question-circle"), 
               title = "Reference channel based normalization between MS runs on protein level data. Requires one reference channel in each MS run, annotated by ‘Norm’ in Condition column of annotation file")),
@@ -68,15 +66,20 @@ sbp_params = sidebarPanel(
   
   
   conditionalPanel(
-    condition = "input.DDA_DIA !== 'TMT' || input.PTMTMT !== 'Yes'",
+    condition = "input.DDA_DIA !== 'TMT' || (input.DDA_DIA == 'PTM' && input.PTMTMT == 'Yes')",
     
     # features
     
     #h4("3. Used features"),
     radioButtons("features_used",
-                 label = h4("3. Used features"),
+                 label = h4("3. Feature subset", 
+                            tipify(icon("question-circle"), 
+                                   title = "What features to use in \
+                                   summarization. All features or a subset of \
+                                   features can be used.")),
                  c("Use all features" = "all", "Use top N features" = "topN", 
                    "Remove uninformative features & outliers" = "highQuality")),
+    #),
     #checkboxInput("all_feat", "Use all features", value = TRUE),
     conditionalPanel(condition = "input.features_used =='topN'",
                      uiOutput("features")),
@@ -93,14 +96,14 @@ sbp_params = sidebarPanel(
                    and 1 as censored" = "0", 
                    "all missing values are random" = "null"), 
                  selected = "NA"),
-    radioTooltip(id = "censInt", choice = "NA", title = "It assumes that all \
+    MSstatsShiny::radioTooltip(id = "censInt", choice = "NA", title = "It assumes that all \
                  NAs in Intensity column are censored.", placement = "right", 
                  trigger = "hover"),
-    radioTooltip(id = "censInt", choice = "0", title = "It assumes that all \
+    MSstatsShiny::radioTooltip(id = "censInt", choice = "0", title = "It assumes that all \
                  values between 0 and 1 in Intensity column are censored.  NAs \
                  will be considered as random missing.", placement = "right",
                  trigger = "hover"),
-    radioTooltip(id = "censInt", choice = "null", title = "It assumes that all \
+    MSstatsShiny::radioTooltip(id = "censInt", choice = "null", title = "It assumes that all \
                  missing values are randomly missing.", placement = "right", 
                  trigger = "hover"),
     
@@ -206,7 +209,8 @@ main = mainPanel(
              #                  tags$br(),
              #                  tags$br(),
              #                  tags$h4("Calculation in progress...")),
-             uiOutput("showplot")
+             uiOutput("showplot"),
+             disabled(downloadButton("saveplot", "Save this plot"))
     ),
     tabPanel("Download Data", 
              #verbatimTextOutput('effect'),
@@ -234,7 +238,6 @@ main = mainPanel(
 ########################################################################################
 
 qc = fluidPage(
-  # useShinyalert(),
   use_busy_spinner(spin = "fading-circle"),
   tags$style(HTML('#proceed6{background-color:orange}')),
   headerPanel("Process and quantify data"),
@@ -243,26 +246,6 @@ qc = fluidPage(
   sbp_params,
   column(width = 8,
          main,
-         uiOutput('submit.button'),
-         #        tags$head(tags$style(type="text/css", "
-         #          #loadmessage {
-         #            position: bottomright;
-         #            top: 0px;
-         #            left: 0px;
-         #            width: 300px;
-         #            padding: 50px;
-         #            margin: 20px;
-         #            border: 15px solid navy;
-         #            text-align: center;
-         #            font-weight: bold;
-         #            font-size: 200%;
-         #            color: #000000;
-         #            background-color: lightgrey;
-         #            z-index: 105;
-         #          }
-         # ")),
-         #        shinyalert(conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-         #                         tags$div("Summarizing Data...",id="loadmessage")
-         #        )),
+         uiOutput('submit.button')
   )
 )

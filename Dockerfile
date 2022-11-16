@@ -25,12 +25,7 @@ RUN apt-get update && apt-get -y install cmake protobuf-compiler
 RUN R -e "install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))"
 
 # install Bioconductor specific packages
-RUN R -e "BiocManager::install(c('MSstatsPTM', 'biomaRt'))"
-
-RUN mkdir /home/MSstatsShiny
-COPY MSstatsShiny /home/MSstatsShiny
-
-RUN R -e "install.packages('/home/MSstatsShiny', repos = NULL, type = 'source')"
+RUN R -e "BiocManager::install(c('MSstatsShiny', 'biomaRt'))"
 
 # copy the Rprofile.site set up file to the image.
 # this make sure your Shiny app will run on the port expected by

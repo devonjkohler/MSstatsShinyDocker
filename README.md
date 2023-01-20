@@ -11,7 +11,7 @@ please follow the steps below.
 2. Log onto the server.
 3. Navigate to the MSstatsShinyDocker repository subfolder.
 4. Pull repository updates.
-5. Build a new docker image - "sudo docker build -t \<image name\> ."
+5. Build a new docker image - "sudo docker build --no-cache -t \<image name\> ."
 6. Edit the application.yml file under /etc/shinyproxy/application.yml to launch your new image (just replace the old image name with the new one)
 7. The application is currently run using ".deb". To end this you need to run "ps aux | grep java" and kill the "shinyproxy" process using "sudo kill -9 \<id\>". You also need to stop the docker. Run "sudo docker container ls" to find the running container. Kill it using "docker stop \<id\>"
 8. Now launch Shinyproxy - navigate to ~/shinyproxy/target and run "sudo dpkg -i shinyproxy_2.6.1_amd64.deb"

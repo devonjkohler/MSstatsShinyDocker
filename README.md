@@ -19,7 +19,7 @@ please follow the steps below.
 11. Use command "sudo docker images" to find old image and delete using "sudo docker image rm -f \<old id\>"
 
 ## What if your system runs out of space
-1. It is highly likely that the space is occupied by docker files, run this command "sudo find / -type f -size +10M -exec ls -lh {} \;" and see the files that take up most of the memeory. If most of the files have the prefix path something like /docker/overaly2/ then it is docker that is eating uo your machine.
+1. It is highly likely that the space is occupied by docker files, run this command "sudo find / -type f -size +10M -exec ls -lh {} \;" and see the files that take up most of the memory. If most of the files have the prefix path something like /docker/overaly2/ then it is docker that is eating uo your machine.
 2. Warning, these steps will remove all your docker network, containers, images etc. Proceed ahead carefully.
 3. Stop docker first: "sudo systemctl stop docker"
 4. Prune and delete docker directory run: "docker system prune" and "sudo rm -rf /var/lib/docker"

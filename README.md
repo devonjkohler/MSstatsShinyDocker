@@ -24,4 +24,4 @@ please follow the steps below.
 3. Stop docker first: "sudo systemctl stop docker"
 4. Prune and delete docker directory run: "docker system prune" and "sudo rm -rf /var/lib/docker"
 5. This should remove all the files and your system should be mostly empty, run this command to verify "df -hT"
-5. Start docker "sudo systemctl start docker". Try running/building your image again. If docker throws some error saying "/var/lib/docker/tmp not a file or directory" restart the docker process again by running "systemctl restart docker"
+5. Start docker "sudo systemctl start docker". Try running/building your image again. If docker throws some error saying "/var/lib/docker/tmp not a file or directory" restart the docker process again by running "sudo systemctl restart docker"

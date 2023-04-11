@@ -2,40 +2,42 @@
 # need to build R template. use r-base 4.2.0
 # Based off: https://github.com/openanalytics/r-base/blob/master/Dockerfile
 FROM r-base:4.2.0
+# FROM rocker/r-ver:latest
+# FROM rocker/shiny-verse:latest
 	
 ## MSstatsShiny stuff ----------------------------------------------------------
 # system libraries of general use
+
 RUN apt-get update && apt-get install -y \
     sudo \
-    pandoc \
-    pandoc-citeproc \
+    gcc \
+    libcurl4-gnutls-dev \
+    libcurl4 \
     libcairo2-dev \
     libxt-dev \
-    libxml2-dev\
     libssl-dev \
-    libssh2-1-dev \
-    libssl1.0
-
-# Run some stuff to install devtools
-RUN apt-get -y install libcurl4-gnutls-dev
-
-RUN apt-get update && apt-get -y install cmake protobuf-compiler
+    libssh2-1-dev\
+    cmake
 
 # install basic R functionalities - Need to reduce dependecies...
-RUN R -e "install.packages(c('shiny', 'shinyBS', 'shinybusy', 'shinyjs', 'uuid', 'DT', 'knitr', 'plotly', 'ggrepel', 'gplots', 'tidyverse', 'data.table', 'BiocManager'))"
+RUN R -e "install.packages('RCurl')"
+RUN R -e "install.packages('BiocManager')"
 
 # install Bioconductor specific packages
-RUN R -e "BiocManager::install(c('MSstatsShiny', 'biomaRt'))"
+RUN R -e "BiocManager::install('MSstatsShiny')"
+# RUN R -e "install.packages(c('remotes'))"
+# RUN R -e "remotes::install_github('https://github.com/Vitek-Lab/MSstatsShiny/tree/develop-deril-2')"
 
 # copy the Rprofile.site set up file to the image.
 # this make sure your Shiny app will run on the port expected by
 # ShinyProxy and also ensures that one will be able to connect to
 # the Shiny app from the outside world
-COPY Rprofile.site /usr/local/lib/R/etc/
+COPY Rprofile.site /usr/lib/R/etc/
 
 # instruct Docker to expose port 3838 to the outside world
 # (otherwise it will not be possible to connect to the Shiny application)
 EXPOSE 3838
 
 # finally, instruct how to launch the Shiny app when the container is started
-CMD ["R", "-e", "library(MSstatsShiny); MSstatsShiny::launch_MSstatsShiny()"]
+# CMD ["R", "-e", "MSstatsShiny::launch_MSstatsShiny(port=3838, host='0.0.0.0')"]
+CMD ["R", "-e", "MSstatsShiny::launch_MSstatsShiny(port=3838, host='0.0.0.0')"]

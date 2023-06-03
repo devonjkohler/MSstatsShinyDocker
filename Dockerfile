@@ -1,7 +1,7 @@
 
 # need to build R template. use r-base 4.2.0
 # Based off: https://github.com/openanalytics/r-base/blob/master/Dockerfile
-FROM r-base:4.2.0
+FROM r-base:4.3.0
 # FROM rocker/r-ver:latest
 # FROM rocker/shiny-verse:latest
 	

@@ -16,7 +16,7 @@ please follow the steps below.
     5. At the top of the instance details page, click the Connect button.
     6. Under the EC2 Instance Connect tab, ensure the default username is set to ubuntu.
 3. Navigate to the MSstatsShinyDocker repository subfolder.
-4. Pull repository updates.
+4. Pull repository updates with `git pull`
 5. Build a new docker image - "sudo docker build --no-cache -t \<image name\> ."
 6. Edit the application.yml file under /etc/shinyproxy/application.yml to launch your new image (just replace the old image name with the new one)
 7. The application is currently run using ".deb". To end this you need to run "ps aux | grep java" and kill the "shinyproxy" process using "sudo kill -9 \<id\>". You also need to stop the docker. Run "sudo docker container ls" to find the running container. Kill it using "docker stop \<id\>"

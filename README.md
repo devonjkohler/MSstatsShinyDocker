@@ -8,12 +8,13 @@ This repository is used to deploy the MSstatsShiny R-shiny application on
 please follow the steps below.
 
 1. Make any updates directly to the shiny application in the repository: https://github.com/Vitek-Lab/MSstatsshiny
-2. Log into the Lab AWS account [here](https://d-9067c3039d.awsapps.com/start/#/).
-    1. In the AWS Management Console, go to the EC2 service.
-    2. In the left sidebar, click Instances.
-    3. Locate the running instance you want to connect to and click its Instance ID.
-    4. At the top of the instance details page, click the Connect button.
-    5. Under the EC2 Instance Connect tab, ensure the default username is set to ubuntu.
+2. Connect to the Shiny server through these steps:
+    1. Log into the Lab AWS account [here](https://d-9067c3039d.awsapps.com/start/#/).
+    2. In the AWS Management Console, go to the EC2 service.
+    3. In the left sidebar, click Instances.
+    4. Locate the running instance you want to connect to and click its Instance ID.
+    5. At the top of the instance details page, click the Connect button.
+    6. Under the EC2 Instance Connect tab, ensure the default username is set to ubuntu.
 3. Navigate to the MSstatsShinyDocker repository subfolder.
 4. Pull repository updates.
 5. Build a new docker image - "sudo docker build --no-cache -t \<image name\> ."

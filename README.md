@@ -8,15 +8,20 @@ This repository is used to deploy the MSstatsShiny R-shiny application on
 please follow the steps below.
 
 1. Make any updates directly to the shiny application in the repository: https://github.com/Vitek-Lab/MSstatsshiny
-2. Log onto the server.
+2. Log into the Lab AWS account [here](https://d-9067c3039d.awsapps.com/start/#/).
+    1. In the AWS Management Console, go to the EC2 service.
+    2. In the left sidebar, click Instances.
+    3. Locate the running instance you want to connect to and click its Instance ID.
+    4. At the top of the instance details page, click the Connect button.
+    5. Under the EC2 Instance Connect tab, ensure the default username is set to ubuntu.
 3. Navigate to the MSstatsShinyDocker repository subfolder.
 4. Pull repository updates.
 5. Build a new docker image - "sudo docker build --no-cache -t \<image name\> ."
 6. Edit the application.yml file under /etc/shinyproxy/application.yml to launch your new image (just replace the old image name with the new one)
 7. The application is currently run using ".deb". To end this you need to run "ps aux | grep java" and kill the "shinyproxy" process using "sudo kill -9 \<id\>". You also need to stop the docker. Run "sudo docker container ls" to find the running container. Kill it using "docker stop \<id\>"
-9. Now launch Shinyproxy - navigate to ~/shinyproxy/target and run "sudo dpkg -i shinyproxy_2.6.1_amd64.deb"
-10. If the the appplication throws 500 error it might be because that there is an existing container using the start port. Kill all the existing containers using the command "sudo systemctl restart docker"
-11. Use command "sudo docker images" to find old image and delete using "sudo docker image rm -f \<old id\>"
+8. Now launch Shinyproxy - navigate to ~/shinyproxy/target and run "sudo dpkg -i shinyproxy_2.6.1_amd64.deb"
+9. If the the appplication throws 500 error it might be because that there is an existing container using the start port. Kill all the existing containers using the command "sudo systemctl restart docker"
+10. Use command "sudo docker images" to find old image and delete using "sudo docker image rm -f \<old id\>"
 
 ## What if your system runs out of space
 1. It is highly likely that the space is occupied by docker files, run this command "sudo find / -type f -size +10M -exec ls -lh {} \;" and see the files that take up most of the memory. If most of the files have the prefix path something like /docker/overaly2/ then it is docker that is eating uo your machine.

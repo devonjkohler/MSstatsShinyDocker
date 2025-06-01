@@ -6,7 +6,7 @@ FROM r-base:4.4.0
 # FROM rocker/shiny-verse:latest
 
 # Set environment variables
-ENV SHINY_ENV="production"
+# ENV SHINY_ENV="production"
 	
 ## MSstatsShiny stuff ----------------------------------------------------------
 # system libraries of general use

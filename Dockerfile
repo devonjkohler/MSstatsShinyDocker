@@ -27,9 +27,9 @@ RUN R -e "install.packages('RCurl')"
 RUN R -e "install.packages('BiocManager')"
 
 # install Bioconductor specific packages
-# RUN R -e "BiocManager::install('MSstatsShiny')"
-RUN R -e "install.packages(c('remotes'))"
-RUN R -e "remotes::install_github('https://github.com/Vitek-Lab/MSstatsShiny/tree/devel')"
+RUN R -e "BiocManager::install('MSstatsShiny')"
+# RUN R -e "install.packages(c('remotes'))"
+# RUN R -e "remotes::install_github('https://github.com/Vitek-Lab/MSstatsShiny/tree/devel')"
 
 # copy the Rprofile.site set up file to the image.
 # this make sure your Shiny app will run on the port expected by

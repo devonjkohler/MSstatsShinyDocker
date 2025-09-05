@@ -32,3 +32,36 @@ please follow the steps below.
 4. Prune and delete docker directory run: "docker system prune" and "sudo rm -rf /var/lib/docker"
 5. This should remove all the files and your system should be mostly empty, run this command to verify "df -hT"
 5. Start docker "sudo systemctl start docker". Try running/building your image again. If docker throws some error saying "/var/lib/docker/tmp not a file or directory" restart the docker process again by running "sudo systemctl restart docker"
+
+## Safe Application Debugging Without Downtime
+
+When your Docker image builds successfully but the application fails to start or times out during deployment, you can debug the image locally instead of troubleshooting on the live site. This approach allows you to identify and fix issues without impacting production availability.
+
+1. Check if packages actually installed:
+
+```
+# List all installed packages
+docker run --rm your-image R -e "rownames(installed.packages())"
+# Check specific package
+docker run --rm your-image R -e "packageVersion('YourPackage')"
+```
+
+2. Test package loading:
+
+```
+# Test individual package loading
+docker run --rm your-image R -e "library(YourPackage)"
+
+# Time the loading
+docker run --rm your-image R -e "system.time(library(YourPackage))"
+```
+
+3. Verbose installation debugging:
+
+```
+# Re-run installation with verbose output
+docker run --rm your-image R -e "install.packages('YourPackage', verbose=TRUE)"
+
+# For Bioconductor packages
+docker run --rm your-image R -e "BiocManager::install('YourPackage', verbose=TRUE)"
+```

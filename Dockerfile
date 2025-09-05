@@ -1,7 +1,8 @@
 
 # need to build R template. use r-base 4.2.0
 # Based off: https://github.com/openanalytics/r-base/blob/master/Dockerfile
-FROM r-base:4.4.0
+# FROM r-base:4.4.0
+FROM r-base:4.5.0
 # FROM rocker/r-ver:latest
 # FROM rocker/shiny-verse:latest
 
@@ -20,13 +21,17 @@ RUN apt-get update && apt-get install -y \
     libxt-dev \
     libssl-dev \
     libssh2-1-dev\
-    cmake
+    cmake \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev
 
 # install basic R functionalities - Need to reduce dependecies...
 RUN R -e "install.packages('RCurl')"
 RUN R -e "install.packages('BiocManager')"
 
 # install Bioconductor specific packages
+RUN R -e "BiocManager::install(version='devel', ask = FALSE)"
 RUN R -e "BiocManager::install('MSstatsShiny')"
 # RUN R -e "install.packages(c('remotes'))"
 # RUN R -e "remotes::install_github('https://github.com/Vitek-Lab/MSstatsShiny/tree/devel')"

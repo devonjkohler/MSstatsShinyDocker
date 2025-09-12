@@ -7,7 +7,7 @@ FROM r-base:4.5.0
 # FROM rocker/shiny-verse:latest
 
 # Set environment variables
-# ENV SHINY_ENV="production"
+ENV SHINY_ENV="production"
 	
 ## MSstatsShiny stuff ----------------------------------------------------------
 # system libraries of general use
@@ -49,3 +49,4 @@ EXPOSE 3838
 # finally, instruct how to launch the Shiny app when the container is started
 # CMD ["R", "-e", "MSstatsShiny::launch_MSstatsShiny(port=3838, host='0.0.0.0')"]
 CMD ["R", "-e", "MSstatsShiny::launch_MSstatsShiny(port=3838, host='0.0.0.0')"]
+
